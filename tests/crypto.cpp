@@ -388,7 +388,8 @@ TEST(SecretStorage, CreateSecretKey)
     ASSERT_TRUE(ssss1.has_value());
     EXPECT_FALSE(ssss1->keyDescription.passphrase.has_value());
     EXPECT_EQ(ssss1->keyDescription.algorithm, "m.secret_storage.v1.aes-hmac-sha2");
-    EXPECT_GE(ssss1->keyDescription.iv.length(), 32);
+    // 16 bytes = 24 base64 characters (padded)
+    EXPECT_EQ(ssss1->keyDescription.iv.length(), 24);
     EXPECT_EQ((ssss1->keyDescription.mac.length() - 1) * 3 / 4, 32);
 
     EXPECT_EQ(key_from_recoverykey(key_to_recoverykey(ssss1->privateKey), ssss1->keyDescription),
@@ -398,7 +399,8 @@ TEST(SecretStorage, CreateSecretKey)
     ASSERT_TRUE(ssss2.has_value());
     ASSERT_TRUE(ssss2->keyDescription.passphrase.has_value());
     EXPECT_EQ(ssss2->keyDescription.algorithm, "m.secret_storage.v1.aes-hmac-sha2");
-    EXPECT_GE(ssss2->keyDescription.iv.length(), 32);
+    // 16 bytes = 24 base64 characters (padded)
+    EXPECT_EQ(ssss2->keyDescription.iv.length(), 24);
     EXPECT_EQ((ssss2->keyDescription.mac.length() - 1) * 3 / 4, 32);
 
     EXPECT_EQ(mtx::crypto::key_from_passphrase("some passphrase", ssss2->keyDescription),
