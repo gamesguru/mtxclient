@@ -232,7 +232,7 @@ AES_CTR_256_Encrypt(const std::string &plaintext, const BinaryBuf &aes256Key, Bi
     int ciphertext_len;
 
     // The ciphertext expand up to block size, which is 128 for AES256
-    BinaryBuf encrypted = compatible_iv(create_buffer(plaintext.size() + AES_BLOCK_SIZE));
+    BinaryBuf encrypted = create_buffer(plaintext.size() + AES_BLOCK_SIZE);
 
     /* Create and initialise the context */
     if (ctx = EVP_CIPHER_CTX_new(); !ctx) {
