@@ -1733,12 +1733,12 @@ TEST(ToDevice, KeyVerificationStart)
       request_data.get<ns::DeviceEvent<ns::msg::KeyVerificationStart>>();
     auto keyEvent = event.content;
     EXPECT_EQ(keyEvent.from_device, "BobDevice1");
-    EXPECT_EQ(keyEvent.hashes[0], "sha256");
-    EXPECT_EQ(keyEvent.key_agreement_protocols[0], "curve25519");
-    EXPECT_EQ(keyEvent.message_authentication_codes[0], "hkdf-hmac-sha256");
-    EXPECT_EQ(keyEvent.short_authentication_string[0], ns::msg::SASMethods::Decimal);
-    EXPECT_EQ(keyEvent.short_authentication_string[1], ns::msg::SASMethods::Emoji);
-    EXPECT_EQ(keyEvent.short_authentication_string[2], ns::msg::SASMethods::Unsupported);
+    EXPECT_EQ(keyEvent.hashes.value()[0], "sha256");
+    EXPECT_EQ(keyEvent.key_agreement_protocols.value()[0], "curve25519");
+    EXPECT_EQ(keyEvent.message_authentication_codes.value()[0], "hkdf-hmac-sha256");
+    EXPECT_EQ(keyEvent.short_authentication_string.value()[0], ns::msg::SASMethods::Decimal);
+    EXPECT_EQ(keyEvent.short_authentication_string.value()[1], ns::msg::SASMethods::Emoji);
+    EXPECT_EQ(keyEvent.short_authentication_string.value()[2], ns::msg::SASMethods::Unsupported);
     EXPECT_EQ(event.type, mtx::events::EventType::KeyVerificationStart);
     EXPECT_EQ(keyEvent.transaction_id, "S0meUniqueAndOpaqueString");
     EXPECT_EQ(keyEvent.method, ns::msg::VerificationMethods::SASv1);

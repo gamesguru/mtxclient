@@ -32,8 +32,9 @@ to_json(nlohmann::json &obj, const SASMethods &method);
 //! The different verification methods
 enum class VerificationMethods
 {
-    SASv1,      //!< Short Authentication Strings
-    Unsupported //!< Unsupported method
+    SASv1,        //!< Short Authentication Strings
+    ReciprocateV1, //!< QR code verification (reciprocate)
+    Unsupported   //!< Unsupported method
 };
 
 void
@@ -224,7 +225,7 @@ struct KeyVerificationStart
     /// from a request.
     /// @note Used in verification via to_device messaging
     std::optional<std::string> transaction_id;
-    //! The verification method to use. Must be 'm.sas.v1'
+    //! The verification method to use. 'm.sas.v1' or 'm.reciprocate.v1'
     VerificationMethods method = VerificationMethods::SASv1;
     /// @brief Optional method to use to verify the other user's key with.
     //
@@ -232,16 +233,18 @@ struct KeyVerificationStart
     // present if the method verifies keys both ways.
     /// @note This appears to be unused in SAS verification
     std::optional<std::string> next_method;
+
+    // --- SAS-specific fields (only present for m.sas.v1) ---
     /// @brief The key agreement protocols the sending device understands.
     ///
     /// Must include at least curve25519.
-    std::vector<std::string> key_agreement_protocols;
+    std::optional<std::vector<std::string>> key_agreement_protocols;
     //! The hash methods the sending device understands. Must include at least sha256.
-    std::vector<std::string> hashes;
+    std::optional<std::vector<std::string>> hashes;
     /// @brief The message authentication codes that the sending device understands.
     ///
     /// Must include at least hkdf-hmac-sha256.
-    std::vector<std::string> message_authentication_codes;
+    std::optional<std::vector<std::string>> message_authentication_codes;
     /// @brief The SAS methods the sending device (and the sending device's user) understands.
     ///
     /// Must include at least decimal. Optionally can include emoji.
@@ -249,7 +252,12 @@ struct KeyVerificationStart
     /// One of:
     /// - `decimal`
     /// - `emoji`
-    std::vector<SASMethods> short_authentication_string;
+    std::optional<std::vector<SASMethods>> short_authentication_string;
+
+    // --- Reciprocate-specific fields (only present for m.reciprocate.v1) ---
+    //! The shared secret from the QR code, encoded as unpadded base64.
+    std::optional<std::string> secret;
+
     /// @brief This is used for relating this message with previously sent
     /// `key.verification.request`
     ///

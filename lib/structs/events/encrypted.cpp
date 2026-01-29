@@ -46,6 +46,9 @@ to_json(nlohmann::json &obj, const VerificationMethods &method)
     case VerificationMethods::SASv1:
         obj = "m.sas.v1";
         break;
+    case VerificationMethods::ReciprocateV1:
+        obj = "m.reciprocate.v1";
+        break;
     case VerificationMethods::Unsupported:
     default:
         obj = "unsupported";
@@ -56,8 +59,11 @@ to_json(nlohmann::json &obj, const VerificationMethods &method)
 void
 from_json(const nlohmann::json &obj, VerificationMethods &method)
 {
-    if (obj.get<std::string>() == "m.sas.v1")
+    auto str = obj.get<std::string>();
+    if (str == "m.sas.v1")
         method = VerificationMethods::SASv1;
+    else if (str == "m.reciprocate.v1")
+        method = VerificationMethods::ReciprocateV1;
     else
         method = VerificationMethods::Unsupported;
 }
@@ -282,13 +288,29 @@ from_json(const nlohmann::json &obj, KeyVerificationStart &event)
     if (obj.count("next_method") != 0) {
         event.next_method = obj.at("next_method").get<std::string>();
     }
-    event.key_agreement_protocols =
-      obj.at("key_agreement_protocols").get<std::vector<std::string>>();
-    event.hashes = obj.at("hashes").get<std::vector<std::string>>();
-    event.message_authentication_codes =
-      obj.at("message_authentication_codes").get<std::vector<std::string>>();
-    event.short_authentication_string =
-      obj.at("short_authentication_string").get<std::vector<SASMethods>>();
+
+    // SAS-specific fields (only for m.sas.v1)
+    if (obj.count("key_agreement_protocols") != 0) {
+        event.key_agreement_protocols =
+          obj.at("key_agreement_protocols").get<std::vector<std::string>>();
+    }
+    if (obj.count("hashes") != 0) {
+        event.hashes = obj.at("hashes").get<std::vector<std::string>>();
+    }
+    if (obj.count("message_authentication_codes") != 0) {
+        event.message_authentication_codes =
+          obj.at("message_authentication_codes").get<std::vector<std::string>>();
+    }
+    if (obj.count("short_authentication_string") != 0) {
+        event.short_authentication_string =
+          obj.at("short_authentication_string").get<std::vector<SASMethods>>();
+    }
+
+    // Reciprocate-specific fields (only for m.reciprocate.v1)
+    if (obj.count("secret") != 0) {
+        event.secret = obj.at("secret").get<std::string>();
+    }
+
     event.relations = common::parse_relations(obj);
 }
 
@@ -301,10 +323,21 @@ to_json(nlohmann::json &obj, const KeyVerificationStart &event)
         obj["transaction_id"] = event.transaction_id.value();
     if (event.next_method.has_value())
         obj["next_method"] = event.next_method.value();
-    obj["key_agreement_protocols"]      = event.key_agreement_protocols;
-    obj["hashes"]                       = event.hashes;
-    obj["message_authentication_codes"] = event.message_authentication_codes;
-    obj["short_authentication_string"]  = event.short_authentication_string;
+
+    // SAS-specific fields
+    if (event.key_agreement_protocols.has_value())
+        obj["key_agreement_protocols"] = event.key_agreement_protocols.value();
+    if (event.hashes.has_value())
+        obj["hashes"] = event.hashes.value();
+    if (event.message_authentication_codes.has_value())
+        obj["message_authentication_codes"] = event.message_authentication_codes.value();
+    if (event.short_authentication_string.has_value())
+        obj["short_authentication_string"] = event.short_authentication_string.value();
+
+    // Reciprocate-specific fields
+    if (event.secret.has_value())
+        obj["secret"] = event.secret.value();
+
     common::apply_relations(obj, event.relations);
 }
 
